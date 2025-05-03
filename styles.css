@@ -1,0 +1,296 @@
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+:root {
+    --neon-blue: #00ffff;
+    --neon-green: #39ff14;
+    --terminal-bg: #000000;
+    --terminal-border: #1a1a1a;
+    --text-color: #39ff14;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: #0a0a0a;
+    color: var(--text-color);
+    font-family: 'VT323', monospace;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+}
+
+/* CRT Screen Curvature Effect */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.2) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+}
+
+.title {
+    font-size: 4rem;
+    color: var(--neon-blue);
+    text-shadow: 0 0 10px var(--neon-blue),
+                 0 0 20px var(--neon-blue),
+                 0 0 30px var(--neon-blue);
+    margin-bottom: 1rem;
+    letter-spacing: 4px;
+}
+
+.description {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    line-height: 1.4;
+}
+
+.terminal {
+    background-color: var(--terminal-bg);
+    border: 3px solid var(--terminal-border);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    transform: perspective(1000px) rotateX(2deg);
+    transition: transform 0.3s ease;
+}
+
+/* CRT Screen Effects */
+.terminal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        /* Scan lines */
+        repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.15),
+            rgba(0, 0, 0, 0.15) 1px,
+            transparent 1px,
+            transparent 2px
+        ),
+        /* Phosphor glow */
+        radial-gradient(
+            circle at center,
+            rgba(0, 255, 0, 0.1) 0%,
+            transparent 70%
+        );
+    pointer-events: none;
+    animation: scan 8s linear infinite;
+}
+
+/* Screen flicker effect */
+.terminal::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.1);
+    animation: flicker 0.15s infinite;
+    pointer-events: none;
+}
+
+@keyframes scan {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(100%);
+    }
+}
+
+@keyframes flicker {
+    0% {
+        opacity: 0.97;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.97;
+    }
+}
+
+.terminal-header {
+    border-bottom: 1px solid var(--neon-green);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    text-align: left;
+    position: relative;
+}
+
+/* Vignette effect */
+.terminal-header::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+}
+
+.mode {
+    color: var(--neon-green);
+    font-size: 1.2rem;
+    text-shadow: 0 0 5px var(--neon-green);
+}
+
+.terminal-content {
+    min-height: 300px;
+    text-align: left;
+    position: relative;
+}
+
+/* Screen curvature */
+.terminal-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.2) 100%);
+    pointer-events: none;
+}
+
+.prompt-area {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.prompt-symbol {
+    color: var(--neon-blue);
+    margin-right: 10px;
+    text-shadow: 0 0 5px var(--neon-blue);
+}
+
+.prompt-label {
+    color: #9933ff;
+    margin-right: 10px;
+    text-shadow: 0 0 5px #9933ff;
+}
+
+.input-area {
+    flex-grow: 1;
+}
+
+input[type="text"] {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    outline: none;
+    padding: 5px;
+    text-shadow: 0 0 5px var(--text-color);
+}
+
+.response-area {
+    margin-top: 20px;
+    padding: 10px;
+    color: var(--text-color);
+    position: relative;
+}
+
+.terminal-footer {
+    border-top: 1px solid var(--neon-green);
+    margin-top: 20px;
+    padding-top: 10px;
+    text-align: right;
+    position: relative;
+}
+
+/* Vignette effect */
+.terminal-footer::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.5) 100%);
+    pointer-events: none;
+}
+
+.mint-info {
+    color: var(--neon-green);
+    font-size: 1rem;
+    text-shadow: 0 0 5px var(--neon-green);
+}
+
+.archive-info {
+    margin-top: 20px;
+    font-size: 1.1rem;
+}
+
+.archive-link {
+    color: var(--neon-green);
+    text-decoration: none;
+    text-shadow: 0 0 5px var(--neon-green);
+}
+
+.archive-link:hover {
+    text-shadow: 0 0 10px var(--neon-green);
+}
+
+@keyframes glitch {
+    0% {
+        text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                     0.025em 0.04em 0 #fffc00;
+    }
+    15% {
+        text-shadow: 0.05em 0 0 #00fffc, -0.03em -0.04em 0 #fc00ff,
+                     0.025em 0.04em 0 #fffc00;
+    }
+    16% {
+        text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                     -0.05em -0.05em 0 #fffc00;
+    }
+    49% {
+        text-shadow: -0.05em -0.025em 0 #00fffc, 0.025em 0.035em 0 #fc00ff,
+                     -0.05em -0.05em 0 #fffc00;
+    }
+    50% {
+        text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                     0 -0.04em 0 #fffc00;
+    }
+    99% {
+        text-shadow: 0.05em 0.035em 0 #00fffc, 0.03em 0 0 #fc00ff,
+                     0 -0.04em 0 #fffc00;
+    }
+    100% {
+        text-shadow: -0.05em 0 0 #00fffc, -0.025em -0.04em 0 #fc00ff,
+                     -0.04em -0.025em 0 #fffc00;
+    }
+} 
