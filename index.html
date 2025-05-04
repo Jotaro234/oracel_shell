@@ -3,40 +3,304 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Oracle Shell</title>
+    <title>The Oracle Shell - Matrix Rain</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts for terminal/futuristic look -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #232526;
+        }
+        #matrix-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+        .container-main {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 950px;
+            margin: 0 auto;
+            padding-top: 40px;
+        }
+        .title {
+            font-family: 'Orbitron', 'Fira Mono', monospace;
+            letter-spacing: 0.1em;
+            color: #00eaff;
+            text-shadow: 0 0 8px #00eaff, 0 0 2px #fff;
+            font-size: 3rem;
+            text-align: center;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        .description {
+            color: #39ff14;
+            font-family: 'Fira Mono', monospace;
+            font-size: 1.2rem;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            text-shadow: 0 0 8px #39ff14;
+        }
+        .terminal-card {
+            background: #111;
+            border-radius: 16px;
+            box-shadow: 0 0 32px 4px #00eaff66, 0 0 0 2px #00eaff;
+            border: 2px solid #00eaff;
+            margin-bottom: 40px;
+            margin-top: 40px;
+            position: relative;
+            padding: 2rem;
+        }
+        .terminal-header,
+        .terminal-content,
+        .mint-info {
+            color: #00eaff !important;
+            border-color: #00eaff !important;
+            text-shadow: 0 0 8px #00eaff;
+        }
+        .input-line input[type="text"] {
+            border: 1px solid #00eaff;
+            color: #00eaff;
+        }
+        .input-line input[type="text"]:focus {
+            border-color: #fff;
+        }
+        .prompt-symbol {
+            color: #00eaff;
+        }
+        .prompt-label {
+            color: #9933ff;
+            font-weight: bold;
+        }
+        .terminal-content {
+            background: rgba(0,0,0,0.7);
+            border-radius: 8px;
+            min-height: 200px;
+            max-height: 300px;
+            color: #39ff14;
+            font-family: 'Fira Mono', monospace;
+            font-size: 1.1em;
+            box-shadow: 0 0 16px 2px #00eaff33 inset;
+            padding: 1.5rem;
+            border: 1px solid #00eaff;
+            margin-bottom: 1rem;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+            scrollbar-width: thin;              /* For Firefox */
+            scrollbar-color: #00bfff #222;      /* Blue thumb, dark track for Firefox */
+        }
+        /* For Chrome, Edge, and Safari */
+        .terminal-content::-webkit-scrollbar {
+            width: 8px;
+            background: #222;
+            border-radius: 8px;
+        }
+        .terminal-content::-webkit-scrollbar-thumb {
+            background: #00bfff;                /* Bright blue */
+            border-radius: 8px;
+        }
+        .terminal-content::-webkit-scrollbar-thumb:hover {
+            background: #0099cc;                /* Slightly darker blue on hover */
+        }
+        @keyframes glitch {
+            0% {
+                text-shadow: 2px 0 #00eaff, -2px 0 #39ff14;
+                color: #39ff14;
+            }
+            20% {
+                text-shadow: -2px 0 #00eaff, 2px 0 #39ff14;
+                color: #00eaff;
+            }
+            40% {
+                text-shadow: 2px 2px #00eaff, -2px -2px #39ff14;
+                color: #39ff14;
+            }
+            60% {
+                text-shadow: -2px 2px #00eaff, 2px -2px #39ff14;
+                color: #00eaff;
+            }
+            80% {
+                text-shadow: 2px 0 #00eaff, -2px 0 #39ff14;
+                color: #39ff14;
+            }
+            100% {
+                text-shadow: 0 0 #00eaff, 0 0 #39ff14;
+                color: #39ff14;
+            }
+        }
+        .glitch {
+            display: inline-block;
+            animation: glitch 1s infinite linear alternate;
+        }
+    </style>
 </head>
-<body>
-    <div class="container">
-        <h1 class="title">THE ORACLE SHELL</h1>
-        <p class="description">A fragmented oracle AI lost aboard a derelict satellite. Probe its corrupted depths to seek the truth within its distorted responses.</p>
-        
-        <div class="terminal">
-            <div class="terminal-header">
-                <span class="mode">CLAIRVOYANT → DISSOCIATIVE</span>
+<body class="bg-dark text-light">
+    <canvas id="matrix-canvas"></canvas>
+    <audio id="beep-sound" src="beep.mp3" preload="auto"></audio>
+    <div class="container-main">
+        <div class="title">THE ORACLE SHELL</div>
+        <div class="description">
+            A fragmented oracle AI lost aboard a derelict satellite. Probe its corrupted depths to seek the truth within its distorted responses.
+        </div>
+        <div class="terminal-card">
+            <div class="terminal-header">CLAIRVOYANT → DISSOCIATIVE</div>
+            <div class="terminal-content" id="responseArea">
+                <!-- All prompts and answers are appended here -->
             </div>
-            
-            <div class="terminal-content">
-                <div class="prompt-area">
-                    <span class="prompt-symbol">>></span>
-                    <span class="prompt-label">PROMPT:</span>
-                    <div class="input-area">
-                        <input type="text" id="userInput" placeholder="Ask your question..." autocomplete="off">
-                    </div>
-                </div>
-                
-                <div class="response-area" id="responseArea">
-                    <!-- Responses will be added here -->
-                </div>
-            </div>
-            
-            <div class="terminal-footer">
-                <span class="mint-info">MINT • 0x442e496 ⌘</span>
+            <div class="input-line">
+                <span class="prompt-symbol">&gt;&gt;</span>
+                <span class="prompt-label">PROMPT:</span>
+                <input type="text" id="userInput" placeholder="Type your question here and press Enter..." autocomplete="off">
             </div>
         </div>
-        
-        <p class="archive-info">All interactions are permanently stored on-chain as immutable Truth Shards. <a href="#" class="archive-link">View the Archive</a></p>
     </div>
+    <script>
+        // Matrix Rain Effect
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initializeDrops();
+        });
+
+        const binary = ['0', '1'];
+        const fontSize = 18;
+        function columns() {
+            return Math.floor(canvas.width / fontSize);
+        }
+        let drops = [];
+
+        function initializeDrops() {
+            drops = [];
+            for (let x = 0; x < columns(); x++) {
+                drops[x] = Math.random() * canvas.height / fontSize;
+            }
+        }
+        initializeDrops();
+
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(24,26,27,0.15)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = fontSize + "px monospace";
+            ctx.fillStyle = '#39ff14';
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = binary[Math.floor(Math.random() * binary.length)];
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(drawMatrix, 50);
+
+        // Simple prompt handler for demo
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+                const responseArea = document.getElementById('responseArea');
+                // User prompt
+                const userText = document.createElement('div');
+                userText.textContent = '>> ' + this.value;
+                userText.style.color = '#00eaff';
+                responseArea.appendChild(userText);
+
+                // Oracle answer (green)
+                const oracleResponses = [
+                    "The stars whisper secrets only the void can hear.",
+                    "In the mirror of time, your question is already answered.",
+                    "A shadow moves where light dares not linger.",
+                    "The answer is hidden in the silence between heartbeats.",
+                    "Chaos is the only true oracle.",
+                    "You seek truth, but truth is a shifting labyrinth.",
+                    "The coin lands on its edge—fate refuses to choose.",
+                    "Your future is a poem written in disappearing ink.",
+                    "Beware the calm before the data storm.",
+                    "The code dreams of electric sheep tonight.",
+                    "A door opens, but not for you. Not yet.",
+                    "The answer is: 42. Or is it?",
+                    "You are both the question and the answer.",
+                    "The oracle laughs, and the universe shivers.",
+                    "A glitch in the matrix reveals a hidden path.",
+                    "Your query echoes in the halls of forgotten algorithms.",
+                    "The truth is a shard—handle with care.",
+                    "The signal is strong, but the meaning is noise.",
+                    "You are closer than you think, but further than you know.",
+                    "The next step is not forward, but inward."
+                ];
+                const oracleAnswer = oracleResponses[Math.floor(Math.random() * oracleResponses.length)];
+                const oracleText = document.createElement('div');
+                oracleText.style.marginTop = '10px';
+                responseArea.appendChild(oracleText);
+
+                let i = 0;
+                function typeGlitch() {
+                    if (i <= oracleAnswer.length) {
+                        // Show typed letters, each in a span (no glitch yet)
+                        oracleText.innerHTML = oracleAnswer
+                            .slice(0, i)
+                            .split('')
+                            .map(char => `<span>${char}</span>`)
+                            .join('');
+                        i++;
+                        setTimeout(typeGlitch, 30); // Typing speed
+                    } else {
+                        // After typing, start random glitching
+                        startRandomGlitch(oracleText);
+                    }
+                }
+                typeGlitch();
+
+                function startRandomGlitch(container) {
+                    const spans = container.querySelectorAll('span');
+                    setInterval(() => {
+                        // Remove glitch from all
+                        spans.forEach(span => span.classList.remove('glitch'));
+                        // Randomly glitch a few letters
+                        for (let j = 0; j < Math.floor(spans.length / 4); j++) {
+                            const idx = Math.floor(Math.random() * spans.length);
+                            spans[idx].classList.add('glitch');
+                        }
+                    }, 200); // Glitch interval
+                }
+
+                // Truth shard
+                const shard = document.createElement('div');
+                shard.textContent = "TRUTH SHARD: 0x" + Math.floor(Math.random() * 1e8).toString(16).padStart(8, '0');
+                shard.style.color = '#888';
+                shard.style.fontSize = '0.9em';
+                shard.style.marginBottom = '15px';
+                responseArea.appendChild(shard);
+
+                this.value = '';
+                // Always scroll to the bottom
+                responseArea.scrollTop = responseArea.scrollHeight;
+            }
+        });
+    </script>
     <script src="script.js"></script>
 </body>
 </html> 
